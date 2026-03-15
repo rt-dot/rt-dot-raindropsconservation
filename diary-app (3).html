@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>雨滴保护区</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.min.js"></script>
+<style>
+:root {
+  --bg:#eef4fb;--bg2:#deeaf6;--paper:#f5f9fe;--paper2:#fafdff;
+  --ink:#0f2236;--ink2:#2e5070;--ink3:#6a8faa;--ink4:#aec8dc;
+  --accent:#2a7fc0;--accent2:#4da3e0;--accent-pale:#d6eaf8;--accent-deep:#1a5a8a;
+  --drop:#3490d4;--drop2:#5ab0f0;
+  --green:#4a8f70;--red:#b84040;--gold:#4a8fc0;
+  --W:390px;--H:844px;--rXL:44px;--rLG:22px;--rMD:14px;--rSM:10px;
+  --sp:0 30px 80px rgba(0,0,0,.38),0 0 0 1px rgba(255,255,255,.1) inset;
+  --sc:0 4px 20px rgba(15,34,54,.09);--sd:0 8px 32px rgba(15,34,54,.16);
+  --ease:cubic-bezier(.4,0,.2,1);--spring:cubic-bezier(.34,1.56,.64,1);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'Noto Serif SC',serif;background:#07131f;min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;background-image:radial-gradient(ellipse at 25% 20%,#0d2a42,#07131f 65%)}
+
+/* PHONE SHELL */
+.phone{width:var(--W);height:var(--H);background:var(--bg);border-radius:var(--rXL);box-shadow:var(--sp);position:relative;overflow:hidden;display:flex;flex-direction:column;flex-shrink:0}
+.di{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:120px;height:34px;background:#030c14;border-radius:20px;z-index:100}
+.sb{height:50px;padding:14px 24px 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:relative;z-index:50}
+.st{font-size:15px;font-weight:600;color:var(--ink);letter-spacing:.02em}
+.si{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink)}
+.bat{width:22px;height:11px;border:1.5px solid var(--ink);border-radius:3px;position:relative;display:flex;align-items:center;padding:1.5px}
+.bat::after{content:'';width:2px;height:5px;background:var(--ink);position:absolute;right:-4px;top:50%;transform:translateY(-50%);border-radius:0 1px 1px 0}
+.batf{width:70%;height:100%;background:var(--ink);border-radius:1px}
+.screens{flex:1;position:relative;overflow:hidden}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .38s var(--ease),transform .38s var(--ease)}
+.screen.active{opacity:1;pointer-events:all}
+.hi{height:34px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.hb{width:134px;height:5px;background:var(--ink);border-radius:3px;opacity:.15}
+
+/* ══════════════════════════════
+   SPLASH — deep ocean blue
+══════════════════════════════ */
+#splash{background:linear-gradient(170deg,#071828 0%,#0d2d4a 45%,#050f1a 100%);align-items:center;justify-content:center;overflow:hidden}
+#splash.active{opacity:1}
+/* rain drops falling */
+.spp{position:absolute;inset:0;pointer-events:none}
+.rdrop{position:absolute;animation:rainFall linear infinite;opacity:0}
+@keyframes rainFall{
+  0%  {transform:translateY(-40px) scaleY(1);opacity:0}
+  8%  {opacity:.7}
+  85% {opacity:.4}
+  100%{transform:translateY(920px) scaleY(1.3);opacity:0}
+}
+/* ripple circles at bottom */
+.ripple-wrap{position:absolute;bottom:0;left:0;right:0;height:200px;pointer-events:none;overflow:hidden}
+.rpl{position:absolute;bottom:0;border-radius:50%;border:1px solid rgba(74,163,224,.22);animation:rippleUp ease-out infinite}
+@keyframes rippleUp{0%{transform:translateX(-50%) scale(.2);opacity:.8}100%{transform:translateX(-50%) scale(3.5);opacity:0}}
+/* glow */
+.sglow{position:absolute;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,rgba(42,127,192,.12) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);animation:gpA 3s ease-in-out infinite}
+@keyframes gpA{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.4}50%{transform:translate(-50%,-50%) scale(1.3);opacity:.9}}
+/* content */
+.scon{position:relative;z-index:10;display:flex;flex-direction:column;align-items:center}
+/* app icon — raindrop shape */
+.sico{
+  width:88px;height:88px;
+  background:linear-gradient(160deg,#4db8ff 0%,#1a6eaa 60%,#0d4070 100%);
+  /* raindrop: circle bottom, pointed top */
+  border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;
+  transform:rotate(0deg);
+  display:flex;align-items:center;justify-content:center;
+  font-size:36px;
+  box-shadow:0 12px 40px rgba(42,127,192,.55),0 0 0 1px rgba(255,255,255,.14) inset;
+  animation:dropIn .9s var(--spring) .28s both;
+  margin-bottom:28px;
+}
+@keyframes dropIn{from{opacity:0;transform:translateY(-60px) scale(.5)}to{opacity:1;transform:translateY(0) scale(1)}}
+.sti{font-family:'Playfair Display',serif;font-size:34px;font-weight:700;color:#e8f4ff;letter-spacing:.04em;animation:riA .7s var(--ease) .75s both;margin-bottom:6px}
+.ssu{font-family:'Lora',serif;font-size:12px;color:rgba(100,180,240,.78);font-style:italic;letter-spacing:.18em;animation:riA .7s var(--ease) .98s both;margin-bottom:0}
+@keyframes riA{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.stag{position:absolute;bottom:44px;font-size:11px;color:rgba(74,163,224,.35);letter-spacing:.13em;animation:riA .7s var(--ease) 1.25s both}
+
+/* ══════════════════════════════
+   CALENDAR SCREEN
+══════════════════════════════ */
+#calendar{background:var(--bg);transform:translateY(22px);overflow:hidden;display:flex;flex-direction:column}
+#calendar.active{transform:translateY(0)}
+
+/* floating mini cal */
+.fcw{position:absolute;top:0;left:0;right:0;z-index:80;pointer-events:none}
+.fcc{background:var(--paper);border-radius:var(--rLG);box-shadow:0 16px 48px rgba(15,34,54,.2),0 2px 8px rgba(15,34,54,.1);padding:16px;margin:4px 18px 0;opacity:0;transform:translateY(-14px) scale(.96);transition:opacity .28s var(--ease),transform .28s var(--spring);pointer-events:none}
+.fcc.open{opacity:1;transform:translateY(0) scale(1);pointer-events:all}
+.fcnav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.fcmo{font-size:15px;font-weight:600;color:var(--ink);letter-spacing:.02em}
+.fca{width:28px;height:28px;border-radius:8px;border:1px solid var(--accent-pale);background:var(--bg);cursor:pointer;font-size:14px;color:var(--ink2);display:flex;align-items:center;justify-content:center;transition:all .14s}
+.fca:active{background:var(--accent-pale);transform:scale(.88)}
+.fcdow{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;margin-bottom:4px}
+.fcdow span{font-size:10px;color:var(--ink3);padding:2px 0;font-weight:500}
+.fcdow span:first-child{color:#b84040}.fcdow span:last-child{color:var(--accent)}
+.fcg{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center}
+.fcd{font-size:13px;padding:5px 2px;border-radius:8px;cursor:pointer;color:var(--ink2);transition:all .15s;-webkit-user-select:none;user-select:none;position:relative}
+.fcd:active{transform:scale(.82)}.fcd.other{color:var(--ink4)}.fcd.sun{color:#b84040}.fcd.sat{color:var(--accent)}
+.fcd.today{background:var(--accent);color:#fff;border-radius:50%;font-weight:700;box-shadow:0 3px 10px rgba(42,127,192,.4)}
+.fcd.sel{background:var(--accent-pale);color:var(--accent-deep);font-weight:600;border-radius:50%}
+/* mini drop marker in float cal */
+.fcd.dot::after{
+  content:'';position:absolute;
+  top:3px;right:4px;
+  width:4px;height:4px;
+  border-radius:50%;
+  background:var(--accent);
+  pointer-events:none;
+}
+.fcd.today.dot::after{background:rgba(255,255,255,.9);}
+.fcd.sel.dot::after{background:var(--accent-deep);}
+
+/* topbar */
+.ctop{height:56px;padding:6px 22px 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.ctw{cursor:pointer;-webkit-user-select:none;user-select:none}
+.ctit{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--ink);line-height:1.1;display:flex;align-items:center;gap:6px}
+.ctit .chev{font-size:18px;color:var(--accent);transition:transform .22s var(--spring);display:inline-block}
+.ctit.open .chev{transform:rotate(180deg)}
+.csub{font-size:11px;color:var(--ink3);font-style:italic;display:none}
+.hbtns{display:flex;gap:8px;align-items:center}
+.hbtn{width:36px;height:36px;border-radius:50%;border:none;background:var(--paper);display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;box-shadow:var(--sc);transition:all .18s var(--ease);color:var(--ink2)}
+.hbtn:active{transform:scale(.88)}
+.mnav{height:36px;padding:0 22px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.mlbl{font-size:16px;font-weight:600;color:var(--ink);letter-spacing:.02em}
+.marr-wrap{display:flex;gap:4px}
+.marr{width:30px;height:30px;border-radius:8px;border:1px solid var(--accent-pale);background:var(--paper);cursor:pointer;font-size:14px;color:var(--ink2);display:flex;align-items:center;justify-content:center;transition:all .14s}
+.marr:active{background:var(--accent-pale);transform:scale(.9)}
+.dowr{height:24px;padding:0 18px;display:grid;grid-template-columns:repeat(7,1fr);text-align:center;align-items:center;flex-shrink:0}
+.dowc{font-size:11px;color:var(--ink3);padding:3px 0;font-weight:500}
+.dowc:first-child{color:#b84040}.dowc:last-child{color:var(--accent)}
+
+/* ── CALENDAR GRID ── */
+.calb{padding:0 18px;display:grid;grid-template-columns:repeat(7,1fr);gap:1px;flex-shrink:0}
+.cc{
+  height:38px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  border-radius:10px;cursor:pointer;position:relative;
+  transition:all .18s var(--ease);font-size:13px;color:var(--ink);
+  -webkit-user-select:none;user-select:none;
+}
+.cc:active{transform:scale(.83)}
+.cc.other{color:var(--ink4)}
+.cc.sun{color:#b84040}
+.cc.sat{color:var(--accent)}
+.cc.today{
+  background:var(--accent);color:#fff!important;font-weight:700;
+  box-shadow:0 4px 14px rgba(42,127,192,.45);
+  border-radius:12px;
+}
+.cc.sel{background:var(--accent-pale);color:var(--accent-deep)!important;font-weight:600}
+.cc.today.sel{background:var(--accent);color:#fff!important}
+
+/* ── DOT BADGE for has-entry (top-right corner) ── */
+.cc.he::after{
+  content:'';
+  position:absolute;
+  top:4px;right:5px;
+  width:5px;height:5px;
+  border-radius:50%;
+  background:var(--accent);
+  pointer-events:none;
+}
+.cc.today.he::after{background:#fff;}
+.cc.sel.he::after{background:var(--accent-deep);}
+
+/* ── PHOTO BG on calendar cell ── */
+.cc.has-photo{
+  background-size:cover;
+  background-position:center;
+  border-radius:10px;
+  overflow:hidden;
+}
+.cc.has-photo::before{
+  content:'';
+  position:absolute;inset:0;
+  background:rgba(10,30,55,.38);
+  border-radius:10px;
+  pointer-events:none;
+  z-index:0;
+}
+.cc.has-photo span{position:relative;z-index:1;}
+.cc.has-photo.today{box-shadow:0 4px 14px rgba(42,127,192,.45);}
+.cc.has-photo.today::before{background:rgba(42,127,192,.45);}
+.cc.has-photo .cc-num{
+  position:relative;z-index:1;
+  color:#fff!important;
+  font-weight:600;
+  text-shadow:0 1px 3px rgba(0,0,0,.5);
+}
+
+/* entry strip */
+.estrip{margin:8px 18px 10px;padding:11px 14px;background:var(--paper);border-radius:var(--rLG);box-shadow:var(--sc);flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.esh{font-size:11px;color:var(--ink3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:9px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.esb{background:var(--accent-pale);color:var(--accent);font-size:10px;padding:2px 8px;border-radius:20px;letter-spacing:0;text-transform:none}
+.ecs{display:flex;flex-direction:column;gap:7px;flex:1;min-height:0;overflow-y:auto;padding-right:2px}
+.ecs::-webkit-scrollbar{width:3px}.ecs::-webkit-scrollbar-thumb{background:var(--accent-pale);border-radius:2px}
+.ec-wrap{position:relative;border-radius:var(--rSM);overflow:hidden;margin-bottom:0;touch-action:pan-y;}
+.ec-del{
+  position:absolute;right:0;top:0;bottom:0;
+  width:72px;
+  background:var(--red);
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:3px;
+  cursor:pointer;
+  border-radius:0 var(--rSM) var(--rSM) 0;
+  transform:translateX(100%);
+  transition:transform .25s var(--ease);
+  flex-shrink:0;
+}
+.ec-del-icon{font-size:18px;color:#fff}
+.ec-del-lbl{font-size:10px;color:rgba(255,255,255,.85);font-family:'Noto Serif SC',serif}
+.ec{padding:10px 11px;border-radius:var(--rSM);background:var(--bg);cursor:pointer;display:flex;align-items:center;gap:9px;transition:transform .25s var(--ease);animation:ecA .28s var(--ease) both;border-left:3px solid var(--accent-pale);position:relative;z-index:1;will-change:transform;}
+@keyframes ecA{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+.ec-wrap.swiped .ec{transform:translateX(-72px)}
+.ec-wrap.swiped .ec-del{transform:translateX(0)}
+.eci{font-size:20px;flex-shrink:0}.ecb{flex:1;min-width:0}
+.ect{font-size:14px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ecm{font-size:11px;color:var(--ink3);margin-top:2px}.eca{color:var(--ink4);font-size:13px}
+
+/* tab bar */
+.tbar{height:62px;padding:0 8px;display:flex;align-items:center;justify-content:space-around;background:rgba(245,249,254,.95);backdrop-filter:blur(20px);border-top:1px solid rgba(42,127,192,.1);flex-shrink:0;position:relative;z-index:10}
+.ti{display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 14px;border-radius:12px;cursor:pointer;transition:all .18s var(--ease);border:none;background:none;font-family:'Noto Serif SC',serif}
+.ti:active{transform:scale(.86)}.ticon{font-size:20px;transition:transform .2s var(--spring)}.tlbl{font-size:10px;color:var(--ink3)}
+.ti.active .ticon{transform:scale(1.15)}.ti.active .tlbl{color:var(--accent);font-weight:600}
+.fab{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 6px 22px rgba(42,127,192,.48);transition:all .2s var(--spring);margin-top:-24px;color:#fff;font-family:'Noto Serif SC',serif;line-height:1}
+.fab:active{transform:scale(.88) rotate(45deg);box-shadow:0 3px 10px rgba(42,127,192,.3)}
+
+/* ── EDITOR ── */
+#editor{background:var(--bg);transform:translateX(100%)}
+#editor.active{transform:translateX(0)}
+.ednav{padding:7px 20px 11px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.bbtn{display:flex;align-items:center;gap:3px;background:none;border:none;font-family:'Noto Serif SC',serif;font-size:15px;color:var(--accent);cursor:pointer;padding:4px 0;transition:opacity .15s}
+.bbtn:active{opacity:.5}.bchev{font-size:19px;margin-top:-1px}
+.endt{font-size:15px;font-weight:600;color:var(--ink);letter-spacing:.02em}
+.svbtn{background:var(--accent);color:#fff;border:none;border-radius:20px;padding:6px 16px;font-family:'Noto Serif SC',serif;font-size:13px;cursor:pointer;box-shadow:0 2px 10px rgba(42,127,192,.35);transition:all .18s var(--spring)}
+.svbtn:active{transform:scale(.9);box-shadow:none}.svbtn.saved{background:var(--green)}
+.edsc{flex:1;overflow-y:auto;padding:0 18px 18px}.edsc::-webkit-scrollbar{display:none}
+
+/* editor floating calendar overlay */
+.ed-fc-overlay{
+  position:absolute;inset:0;z-index:90;
+  pointer-events:none;
+}
+.ed-fc-overlay.open{pointer-events:all}
+.ed-fc-backdrop{
+  position:absolute;inset:0;
+  background:rgba(5,16,28,.38);
+  backdrop-filter:blur(3px);
+  opacity:0;transition:opacity .25s var(--ease);
+}
+.ed-fc-overlay.open .ed-fc-backdrop{opacity:1}
+.ed-fc-panel{
+  position:absolute;
+  top:58px;left:18px;right:18px;
+  background:var(--paper);
+  border-radius:var(--rLG);
+  box-shadow:0 18px 52px rgba(15,34,54,.22),0 2px 10px rgba(15,34,54,.12);
+  padding:16px;
+  transform:translateY(-16px) scale(.96);
+  opacity:0;
+  transition:opacity .28s var(--ease),transform .28s var(--spring);
+}
+.ed-fc-overlay.open .ed-fc-panel{opacity:1;transform:translateY(0) scale(1)}
+.ed-fc-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.ed-fc-title{font-size:15px;font-weight:600;color:var(--ink);letter-spacing:.02em}
+.ed-fc-close{
+  width:26px;height:26px;border-radius:50%;
+  border:1px solid var(--accent-pale);background:var(--bg);
+  cursor:pointer;font-size:13px;color:var(--ink3);
+  display:flex;align-items:center;justify-content:center;
+  transition:all .15s;
+}
+.ed-fc-close:active{background:var(--accent-pale);transform:scale(.88)}
+.ed-fc-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.ed-fc-mo{font-size:14px;font-weight:600;color:var(--ink)}
+.ed-fc-arr{width:28px;height:28px;border-radius:8px;border:1px solid var(--accent-pale);background:var(--bg);cursor:pointer;font-size:14px;color:var(--ink2);display:flex;align-items:center;justify-content:center;transition:all .14s}
+.ed-fc-arr:active{background:var(--accent-pale);transform:scale(.88)}
+.ed-fc-dow{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;margin-bottom:4px}
+.ed-fc-dow span{font-size:10px;color:var(--ink3);padding:2px 0;font-weight:500}
+.ed-fc-dow span:first-child{color:#b84040}
+.ed-fc-dow span:last-child{color:var(--accent)}
+.ed-fc-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center}
+.ed-fc-day{
+  font-size:13px;padding:6px 2px;border-radius:8px;
+  cursor:pointer;color:var(--ink2);
+  transition:all .15s var(--ease);
+  -webkit-user-select:none;user-select:none;
+  position:relative;
+}
+.ed-fc-day:active{transform:scale(.82)}
+.ed-fc-day.other{color:var(--ink4)}
+.ed-fc-day.sun{color:#b84040}
+.ed-fc-day.sat{color:var(--accent)}
+.ed-fc-day.today{background:var(--accent);color:#fff;border-radius:50%;font-weight:700;box-shadow:0 3px 10px rgba(42,127,192,.4)}
+.ed-fc-day.cur{background:var(--accent-pale);color:var(--accent-deep);font-weight:700;border-radius:50%;box-shadow:0 0 0 2px var(--accent)}
+.ed-fc-day.today.cur{background:var(--accent);color:#fff;box-shadow:0 0 0 3px rgba(42,127,192,.5),0 3px 10px rgba(42,127,192,.4)}
+.ed-fc-confirm{
+  width:100%;margin-top:12px;padding:11px;
+  background:var(--accent);color:#fff;
+  border:none;border-radius:var(--rMD);
+  font-family:'Noto Serif SC',serif;font-size:14px;
+  cursor:pointer;
+  box-shadow:0 3px 12px rgba(42,127,192,.35);
+  transition:all .18s var(--spring);
+  letter-spacing:.04em;
+}
+.ed-fc-confirm:active{transform:scale(.96);box-shadow:none}
+
+.dcard{background:var(--paper);border-radius:var(--rLG);padding:15px;margin-bottom:13px;box-shadow:var(--sc);display:flex;align-items:center;justify-content:space-between}
+/* date left side — clickable hint */
+.dbig{font-family:'Playfair Display',serif;cursor:pointer;-webkit-user-select:none;user-select:none;position:relative}
+.dbig::after{
+  content:'修改日期';
+  position:absolute;bottom:-14px;left:0;
+  font-size:10px;color:var(--accent);
+  font-family:'Noto Serif SC',serif;
+  font-style:normal;
+  opacity:0;transition:opacity .2s;
+  white-space:nowrap;
+}
+.dbig:hover::after{opacity:1}
+.dday{font-size:46px;font-weight:700;color:var(--accent);line-height:1;display:block;transition:opacity .15s}
+.dbig:active .dday{opacity:.6}
+.drest{font-size:13px;color:var(--ink2);font-style:italic;display:block;margin-top:2px}
+.dwk{font-size:11px;color:var(--ink3);display:block;margin-top:1px}
+.dright{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.wxp{display:flex;align-items:center;gap:5px;background:var(--accent-pale);padding:5px 11px;border-radius:20px;font-size:12px;color:var(--ink2)}
+.mrow{display:flex;gap:5px}
+.mdot{width:30px;height:30px;border-radius:50%;border:2px solid transparent;background:none;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s var(--spring);opacity:.4}
+.mdot:active{transform:scale(1.3)}.mdot.active{opacity:1;border-color:var(--accent-pale);transform:scale(1.15);background:var(--accent-pale)}
+.tin{width:100%;background:var(--paper);border:none;border-radius:var(--rMD);padding:13px 15px;font-family:'Playfair Display',serif;font-size:21px;font-weight:700;color:var(--ink);outline:none;box-shadow:var(--sc);margin-bottom:11px;transition:box-shadow .2s}
+.tin::placeholder{color:var(--ink4);font-weight:400;font-style:italic}
+.tin:focus{box-shadow:var(--sd),0 0 0 2px var(--accent-pale)}
+.bwrap{background:var(--paper);border-radius:var(--rMD);padding:13px 15px;box-shadow:var(--sc);margin-bottom:11px;position:relative;background-image:repeating-linear-gradient(transparent,transparent 27px,rgba(42,127,192,.06) 27px,rgba(42,127,192,.06) 28px);background-size:100% 28px;background-position:0 41px}
+.bta{width:100%;min-height:175px;background:transparent;border:none;outline:none;font-family:'Lora',serif;font-size:15px;line-height:2;color:var(--ink);resize:none}
+.bta::placeholder{color:var(--ink4);font-style:italic}
+.cpill{position:absolute;bottom:9px;right:11px;font-size:10px;color:var(--ink4);background:var(--bg);padding:2px 7px;border-radius:10px}
+.msec{background:var(--paper);border-radius:var(--rMD);padding:11px;box-shadow:var(--sc);margin-bottom:11px}
+.mlbl{font-size:11px;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:9px}
+
+/* live photo exif info card */
+.exif-card{
+  background:linear-gradient(135deg,rgba(42,127,192,.08),rgba(42,127,192,.03));
+  border:1px solid rgba(42,127,192,.2);
+  border-radius:var(--rMD);
+  padding:10px 13px;
+  margin-bottom:11px;
+  display:none;
+  animation:piA .3s var(--spring);
+}
+.exif-card.show{display:block}
+.exif-header{
+  display:flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:600;color:var(--accent);
+  letter-spacing:.06em;text-transform:uppercase;
+  margin-bottom:8px;
+}
+.exif-header .live-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--accent);
+  animation:livePulse 1.5s ease-in-out infinite;
+}
+@keyframes livePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.7)}}
+.exif-rows{display:flex;flex-direction:column;gap:5px}
+.exif-row{
+  display:flex;align-items:flex-start;gap:8px;
+  font-size:12px;
+}
+.exif-icon{font-size:13px;flex-shrink:0;margin-top:1px}
+.exif-label{color:var(--ink3);flex-shrink:0;min-width:44px}
+.exif-val{color:var(--ink);font-family:'Lora',serif;flex:1;line-height:1.4}
+.mtray{display:flex;gap:7px;flex-wrap:wrap}
+.mth{width:68px;height:68px;border-radius:10px;overflow:hidden;position:relative;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;animation:piA .25s var(--spring);box-shadow:0 2px 8px rgba(15,34,54,.1)}
+@keyframes piA{from{opacity:0;transform:scale(.55)}to{opacity:1;transform:scale(1)}}
+.mth img{width:100%;height:100%;object-fit:cover}
+.mdel{position:absolute;top:3px;right:3px;width:18px;height:18px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:50%;font-size:10px;cursor:pointer;display:none;align-items:center;justify-content:center}
+.mth:hover .mdel{display:flex}
+.lbadge{position:absolute;bottom:3px;left:3px;background:rgba(0,0,0,.55);color:#fff;font-size:8px;padding:2px 4px;border-radius:4px;letter-spacing:.05em}
+.addm{width:68px;height:68px;border-radius:10px;border:2px dashed var(--accent-pale);background:transparent;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--ink4);font-size:10px;font-family:'Noto Serif SC',serif;transition:all .18s}
+.addm:active{border-color:var(--accent);color:var(--accent);background:var(--accent-pale);transform:scale(.93)}
+.addmp{font-size:20px;color:var(--accent-pale);line-height:1}
+.tsec{background:var(--paper);border-radius:var(--rMD);padding:11px 13px;box-shadow:var(--sc);margin-bottom:11px;cursor:text}
+.tsec-lbl{font-size:11px;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:9px}
+.tw{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+/* confirmed tag chip */
+.tchip{
+  display:inline-flex;align-items:center;gap:4px;
+  background:var(--accent-pale);
+  color:var(--accent-deep);
+  font-size:12px;padding:5px 11px;
+  border-radius:20px;
+  border:1.5px solid var(--accent);
+  animation:piA .2s var(--spring);
+  font-family:'Noto Serif SC',serif;
+}
+.tchip button{background:none;border:none;cursor:pointer;color:var(--accent);font-size:13px;line-height:1;padding:0;margin-left:2px}
+/* active input pill */
+.tag-pill-wrap{
+  display:inline-flex;align-items:center;
+  border:1.5px solid var(--accent);
+  border-radius:20px;
+  padding:4px 10px;
+  background:rgba(42,127,192,.07);
+  animation:piA .18s var(--spring);
+  min-width:80px;
+}
+.tag-pill-wrap .hash{
+  font-size:13px;color:var(--accent);font-weight:600;margin-right:2px;
+  font-family:'Noto Serif SC',serif;
+}
+.tag-pill-input{
+  border:none;background:transparent;
+  font-family:'Noto Serif SC',serif;
+  font-size:12px;color:var(--ink);
+  outline:none;width:60px;min-width:40px;
+}
+.tag-pill-input::placeholder{color:var(--ink4);}
+/* add tag hint */
+.tag-add-hint{
+  font-size:12px;color:var(--ink4);
+  cursor:pointer;padding:4px 2px;
+  display:inline-flex;align-items:center;gap:3px;
+  font-family:'Noto Serif SC',serif;
+  transition:color .15s;
+}
+.tag-add-hint:hover{color:var(--accent)}
+.mtbar{display:flex;padding:9px 14px;gap:5px;background:rgba(245,249,254,.96);backdrop-filter:blur(20px);border-top:1px solid rgba(42,127,192,.1);flex-shrink:0}
+.mtb{flex:1;padding:9px 3px;border-radius:var(--rSM);border:1px solid var(--accent-pale);background:var(--paper);cursor:pointer;font-size:11px;color:var(--ink2);font-family:'Noto Serif SC',serif;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .15s var(--spring);box-shadow:0 1px 4px rgba(15,34,54,.06)}
+.mtb:active{transform:scale(.9);background:var(--accent-pale);border-color:var(--accent)}
+.mtb span{font-size:17px}
+/* toast */
+.toast{position:absolute;bottom:88px;left:50%;transform:translateX(-50%);background:rgba(10,30,50,.88);color:#e8f4ff;padding:9px 20px;border-radius:20px;font-size:13px;white-space:nowrap;z-index:200;backdrop-filter:blur(12px);animation:tIA .3s var(--spring),tOA .3s var(--ease) 1.8s forwards;pointer-events:none}
+@keyframes tIA{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes tOA{to{opacity:0;transform:translateX(-50%) translateY(10px)}}
+/* sheet */
+.mbg{position:absolute;inset:0;background:rgba(5,16,28,.6);backdrop-filter:blur(6px);z-index:150;display:none;align-items:flex-end;justify-content:center}
+.mbg.open{display:flex;animation:faA .2s var(--ease)}
+@keyframes faA{from{opacity:0}to{opacity:1}}
+.ash{background:var(--paper);width:100%;border-radius:var(--rXL) var(--rXL) 0 0;padding:20px 20px 8px;animation:suA .35s var(--spring)}
+@keyframes suA{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.ashtit{font-size:13px;color:var(--ink3);text-align:center;margin-bottom:15px}
+.ashbtn{width:100%;padding:15px;border:none;border-radius:var(--rMD);font-family:'Noto Serif SC',serif;font-size:16px;cursor:pointer;margin-bottom:8px;transition:all .14s}
+.ashbtn:active{transform:scale(.97)}.ashbtn.danger{background:rgba(184,64,64,.08);color:var(--red)}.ashbtn.cancel{background:var(--bg2);color:var(--ink2)}
+input[type="file"]{display:none}
+body.dark{--bg:#0d1e2e;--bg2:#142536;--paper:#142840;--paper2:#1a3050;--ink:#d8eeff;--ink2:#80aece;--ink3:#4a7090;--ink4:#2a4a65;--accent-pale:#0e2a45}
+</style>
+</head>
+<body>
+<div class="phone" id="phone">
+  <div class="di"></div>
+  <div class="sb">
+    <div class="st" id="sTime">9:41</div>
+    <div class="si"><span>●●●</span><span>WiFi</span><div class="bat"><div class="batf"></div></div></div>
+  </div>
+  <div class="screens">
+
+    <!-- SPLASH -->
+    <div class="screen" id="splash">
+      <div class="spp" id="ptcls"></div>
+      <div class="ripple-wrap" id="ripples"></div>
+      <div class="sglow"></div>
+      <div class="scon">
+        <div class="sico">💧</div>
+        <div class="sti">雨滴保护区</div>
+        <div class="ssu">Raindrop Sanctuary</div>
+      </div>
+      <div class="stag">每一滴记忆，都值得被珍藏</div>
+    </div>
+
+    <!-- CALENDAR -->
+    <div class="screen" id="calendar">
+      <div class="fcw" id="fcw">
+        <div class="fcc" id="fcc">
+          <div class="fcnav">
+            <button class="fca" onclick="fcP()">‹</button>
+            <div class="fcmo" id="fcmo"></div>
+            <button class="fca" onclick="fcN()">›</button>
+          </div>
+          <div class="fcdow"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+          <div class="fcg" id="fcg"></div>
+        </div>
+      </div>
+
+      <div class="ctop">
+        <div class="ctw" id="ctw" onclick="toggleFC()">
+          <div class="ctit" id="ctit"><span id="ctitTxt">雨滴保护区</span><span class="chev">⌄</span></div>
+          <div class="csub" id="csub">今天发生了什么？</div>
+        </div>
+        <div class="hbtns">
+          <button class="hbtn" onclick="showStats()">📊</button>
+          <button class="hbtn" id="thBtn" onclick="toggleTheme()">🌙</button>
+        </div>
+      </div>
+
+      <div class="mnav">
+        <div class="mlbl" id="mlbl"></div>
+        <div class="marr-wrap">
+          <button class="marr" onclick="prevM()">‹</button>
+          <button class="marr" onclick="nextM()">›</button>
+        </div>
+      </div>
+      <div class="dowr"><div class="dowc">日</div><div class="dowc">一</div><div class="dowc">二</div><div class="dowc">三</div><div class="dowc">四</div><div class="dowc">五</div><div class="dowc">六</div></div>
+      <div class="calb" id="calb"></div>
+
+      <div class="estrip">
+        <div class="esh"><span id="eslbl">今天的日记</span><span class="esb" id="escnt">0</span></div>
+        <div class="ecs" id="ecs"></div>
+      </div>
+
+      <div class="tbar">
+        <button class="ti active"><span class="ticon">📅</span><span class="tlbl">日历</span></button>
+        <button class="ti"><span class="ticon">🔍</span><span class="tlbl">搜索</span></button>
+        <button class="fab" onclick="newEntry()">＋</button>
+        <button class="ti"><span class="ticon">💧</span><span class="tlbl">回顾</span></button>
+        <button class="ti"><span class="ticon">⚙️</span><span class="tlbl">设置</span></button>
+      </div>
+    </div>
+
+    <!-- EDITOR -->
+    <div class="screen" id="editor">
+      <!-- floating date-picker overlay (inside editor) -->
+      <div class="ed-fc-overlay" id="edFcOverlay">
+        <div class="ed-fc-backdrop" onclick="closeEdFC()"></div>
+        <div class="ed-fc-panel">
+          <div class="ed-fc-head">
+            <div class="ed-fc-title">修改日期</div>
+            <button class="ed-fc-close" onclick="closeEdFC()">✕</button>
+          </div>
+          <div class="ed-fc-nav">
+            <button class="ed-fc-arr" onclick="edFcP()">‹</button>
+            <div class="ed-fc-mo" id="edFcMo"></div>
+            <button class="ed-fc-arr" onclick="edFcN()">›</button>
+          </div>
+          <div class="ed-fc-dow"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+          <div class="ed-fc-grid" id="edFcGrid"></div>
+          <button class="ed-fc-confirm" onclick="confirmEdDate()">确认修改日期</button>
+        </div>
+      </div>
+
+      <div class="ednav">
+        <button class="bbtn" onclick="goBack()"><span class="bchev">‹</span><span>日历</span></button>
+        <div class="endt" id="endt"></div>
+        <button class="svbtn" id="svbtn" onclick="saveEntry()">保存</button>
+      </div>
+      <div class="edsc">
+        <div class="dcard">
+          <div class="dbig" onclick="openEdFC()" title="点击修改日期">
+            <span class="dday" id="edD"></span>
+            <span class="drest" id="edMY"></span>
+            <span class="dwk" id="edWK"></span>
+          </div>
+          <div class="dright">
+            <div class="wxp"><span id="wxI">⛅</span><span id="wxT">晴朗</span><span style="color:var(--ink4)">·</span><span id="wxL" style="max-width:76px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">定位中</span></div>
+            <div class="mrow">
+              <button class="mdot" onclick="setMood(this,'😊')">😊</button>
+              <button class="mdot" onclick="setMood(this,'😌')">😌</button>
+              <button class="mdot" onclick="setMood(this,'😔')">😔</button>
+              <button class="mdot" onclick="setMood(this,'🥰')">🥰</button>
+              <button class="mdot" onclick="setMood(this,'😤')">😤</button>
+            </div>
+          </div>
+        </div>
+        <input class="tin" id="eT" placeholder="今天的标题…" oninput="autoSave()">
+        <div class="bwrap">
+          <textarea class="bta" id="eB" placeholder="在此写下今天的故事……&#10;&#10;发生了什么？你的感受如何？" oninput="upC();autoSave()"></textarea>
+          <div class="cpill" id="cpill">0 字</div>
+        </div>
+        <div class="msec"><div class="mlbl">媒体附件</div><div class="mtray" id="mtray"></div></div>
+
+        <!-- live photo exif info -->
+        <div class="exif-card" id="exifCard">
+          <div class="exif-header"><span class="live-dot"></span>实况照片信息</div>
+          <div class="exif-rows">
+            <div class="exif-row" id="exifTimeRow" style="display:none">
+              <span class="exif-icon">🕐</span>
+              <span class="exif-label">拍摄时间</span>
+              <span class="exif-val" id="exifTime">—</span>
+            </div>
+            <div class="exif-row" id="exifLocRow" style="display:none">
+              <span class="exif-icon">📍</span>
+              <span class="exif-label">拍摄地点</span>
+              <span class="exif-val" id="exifLoc">—</span>
+            </div>
+            <div class="exif-row" id="exifDevRow" style="display:none">
+              <span class="exif-icon">📷</span>
+              <span class="exif-label">设备</span>
+              <span class="exif-val" id="exifDev">—</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="tsec" id="tsec" onclick="tsecClick(event)">
+          <div class="tsec-lbl">标签</div>
+          <div class="tw" id="tw"></div>
+        </div>
+      </div>
+      <div class="mtbar">
+        <button class="mtb" onclick="trig('image')"><span>🖼</span>图片</button>
+        <button class="mtb" onclick="trig('video')"><span>🎬</span>视频</button>
+        <button class="mtb" onclick="trig('audio')"><span>🎙</span>语音</button>
+        <button class="mtb" onclick="trigL()"><span>✨</span>实况</button>
+        <button class="mtb" onclick="showDel()" style="color:var(--red);border-color:rgba(184,64,64,.2)"><span>🗑</span>删除</button>
+      </div>
+    </div>
+  </div>
+  <div class="hi"><div class="hb"></div></div>
+
+  <div class="mbg" id="ds">
+    <div class="ash">
+      <div class="ashtit">确定要删除这篇日记吗？此操作无法撤销。</div>
+      <button class="ashbtn danger" onclick="confDel()">删除日记</button>
+      <button class="ashbtn cancel" onclick="closeSheet()">取消</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="imageInput" accept="image/*" multiple onchange="hImg(this)">
+<input type="file" id="videoInput" accept="video/*" onchange="hVid(this)">
+<input type="file" id="audioInput" accept="audio/*" onchange="hAud(this)">
+<input type="file" id="liveInput" accept="image/*,video/*" onchange="hLiv(this)">
+
+<script>
+let E=JSON.parse(localStorage.getItem('sg4')||'[]');
+let cId=null,cY,cM,sD,fY,fM,dark=localStorage.getItem('sg_d')==='1',fcOpen=false;
+let wxI='⛅',wxT='晴朗',wxL='未知位置',asT=null;
+const WD=['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+const ME=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MC=['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+
+(async function(){
+  await openDB();
+  // restore srcs from IndexedDB into in-memory entries
+  for(const e of E){await loadMediaSrcs(e);}
+  tick();setInterval(tick,1e3);
+  const n=new Date();cY=n.getFullYear();cM=n.getMonth();fY=cY;fM=cM;sD=ds(n);
+  if(dark){document.body.classList.add('dark');document.getElementById('thBtn').textContent='☀️';}
+  buildRain();buildRipples();show('splash');
+  setTimeout(()=>{show('calendar');renderCal();renderStrip(sD);fetchWx();checkOTD();},3000);
+})();
+
+function tick(){const n=new Date();document.getElementById('sTime').textContent=`${pad(n.getHours())}:${pad(n.getMinutes())}`;}
+function pad(v){return String(v).padStart(2,'0');}
+function ds(d){return`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;}
+
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function goBack(){closeFC();show('calendar');renderCal();renderStrip(sD);}
+
+/* rain drops on splash */
+function buildRain(){
+  const c=document.getElementById('ptcls');
+  for(let i=0;i<38;i++){
+    const d=document.createElement('div');d.className='rdrop';
+    const w=1+Math.random()*1.5;
+    const h=8+Math.random()*18;
+    d.style.cssText=`
+      width:${w}px;height:${h}px;
+      left:${Math.random()*100}%;
+      background:linear-gradient(180deg,rgba(100,190,255,.0),rgba(80,170,240,.65));
+      border-radius:${w/2}px;
+      animation-duration:${0.8+Math.random()*1.4}s;
+      animation-delay:${Math.random()*3}s;
+    `;
+    c.appendChild(d);
+  }
+}
+
+/* ripple circles */
+function buildRipples(){
+  const w=document.getElementById('ripples');
+  const positions=[15,35,55,75,92];
+  positions.forEach((lft,i)=>{
+    const r=document.createElement('div');r.className='rpl';
+    const sz=60+Math.random()*80;
+    r.style.cssText=`width:${sz}px;height:${sz}px;left:${lft}%;animation-duration:${2+Math.random()*2}s;animation-delay:${i*0.4}s;`;
+    w.appendChild(r);
+  });
+}
+
+/* ── FLOAT CAL ── */
+function toggleFC(){fcOpen?closeFC():openFC();}
+function openFC(){
+  fcOpen=true;fY=cY;fM=cM;renderFC();
+  document.getElementById('fcc').classList.add('open');
+  document.getElementById('ctit').classList.add('open');
+  setTimeout(()=>document.addEventListener('click',outFC),15);
+}
+function closeFC(){
+  fcOpen=false;
+  document.getElementById('fcc').classList.remove('open');
+  document.getElementById('ctit').classList.remove('open');
+  document.removeEventListener('click',outFC);
+}
+function outFC(e){if(!document.getElementById('fcc').contains(e.target)&&!document.getElementById('ctw').contains(e.target))closeFC();}
+function fcP(){fM--;if(fM<0){fM=11;fY--;}renderFC();}
+function fcN(){fM++;if(fM>11){fM=0;fY++;}renderFC();}
+function renderFC(){
+  const n=new Date();
+  document.getElementById('fcmo').textContent=`${fY}年 ${MC[fM]}`;
+  const ed=new Set(E.map(e=>e.date));
+  const days=new Date(fY,fM+1,0).getDate();
+  const first=new Date(fY,fM,1).getDay();
+  const prev=new Date(fY,fM,0).getDate();
+  let h='';
+  for(let i=0;i<first;i++)h+=`<div class="fcd other">${prev-first+i+1}</div>`;
+  for(let d=1;d<=days;d++){
+    const dstr=`${fY}-${pad(fM+1)}-${pad(d)}`;
+    const isT=n.getFullYear()===fY&&n.getMonth()===fM&&n.getDate()===d;
+    const isSel=dstr===sD&&!isT;
+    const dow=new Date(fY,fM,d).getDay();
+    const cls=['fcd',dow===0?'sun':'',dow===6?'sat':'',isT?'today':'',isSel?'sel':'',ed.has(dstr)?'dot':''].filter(Boolean).join(' ');
+    h+=`<div class="${cls}" onclick="fcSel('${dstr}')">${d}</div>`;
+  }
+  const rem=(first+days)%7===0?0:7-(first+days)%7;
+  for(let i=1;i<=rem;i++)h+=`<div class="fcd other">${i}</div>`;
+  document.getElementById('fcg').innerHTML=h;
+}
+function fcSel(dstr){
+  const p=dstr.split('-');const y=+p[0],m=+p[1]-1;
+  if(y!==cY||m!==cM){cY=y;cM=m;}
+  sD=dstr;closeFC();renderCal();renderStrip(sD);
+  showToast(`已跳转 ${+p[1]}月${+p[2]}日`);
+}
+
+/* ── MAIN CAL ── */
+function renderCal(){
+  const n=new Date();
+  document.getElementById('mlbl').textContent=`${cY}年 ${MC[cM]}`;
+  document.getElementById('ctitTxt').textContent='雨滴保护区';
+  const sk=calcStreak();
+  document.getElementById('csub').textContent=sk>1?`已连续记录 ${sk} 天 💧`:'今天，留下一滴记忆吧';
+
+  // build date → first image src map
+  const photoMap={};
+  const entryDates=new Set();
+  E.forEach(e=>{
+    entryDates.add(e.date);
+    if(!photoMap[e.date]){
+      const img=(e.media||[]).find(m=>m.type==='image'||m.type==='live');
+      if(img) photoMap[e.date]=img.src;
+    }
+  });
+
+  const days=new Date(cY,cM+1,0).getDate();
+  const first=new Date(cY,cM,1).getDay();
+  const prev=new Date(cY,cM,0).getDate();
+  let h='';
+  for(let i=0;i<first;i++)h+=`<div class="cc other">${prev-first+i+1}</div>`;
+  for(let d=1;d<=days;d++){
+    const dstr=`${cY}-${pad(cM+1)}-${pad(d)}`;
+    const isT=n.getFullYear()===cY&&n.getMonth()===cM&&n.getDate()===d;
+    const isSel=dstr===sD&&!isT;
+    const dow=new Date(cY,cM,d).getDay();
+    const hasPhoto=!!photoMap[dstr];
+    const cls=['cc',
+      dow===0?'sun':'',dow===6?'sat':'',
+      isT?'today':'',isSel?'sel':'',
+      entryDates.has(dstr)?'he':'',
+      hasPhoto?'has-photo':''
+    ].filter(Boolean).join(' ');
+    const style=hasPhoto
+      ?` style="background-image:url('${photoMap[dstr]}')"`
+      :'';
+    h+=`<div class="${cls}"${style} onclick="selDate('${dstr}')"><span class="cc-num">${d}</span></div>`;
+  }
+  const rem=(first+days)%7===0?0:7-(first+days)%7;
+  for(let i=1;i<=rem;i++)h+=`<div class="cc other">${i}</div>`;
+  const b=document.getElementById('calb');b.innerHTML=h;
+  b.querySelectorAll('.cc:not(.other)').forEach((el,i)=>{
+    el.style.animation=`piA .22s var(--spring) ${i*10}ms both`;
+  });
+}
+function selDate(d){sD=d;closeFC();renderCal();renderStrip(d);}
+function prevM(){cM--;if(cM<0){cM=11;cY--;}renderCal();renderStrip(sD);}
+function nextM(){cM++;if(cM>11){cM=0;cY++;}renderCal();renderStrip(sD);}
+
+function renderStrip(dstr){
+  const n=new Date(),ts=ds(n);const p=dstr.split('-');
+  document.getElementById('eslbl').textContent=dstr===ts?'今天的日记':`${+p[1]}月${+p[2]}日 的日记`;
+  const day=E.filter(e=>e.date===dstr).sort((a,b)=>b.created-a.created);
+  document.getElementById('escnt').textContent=day.length;
+  const c=document.getElementById('ecs');
+  if(!day.length){
+    c.innerHTML=`<div style="text-align:center;padding:18px 0;color:var(--ink4);font-size:13px"><div style="font-size:26px;margin-bottom:5px">💧</div><div>这天还没有雨滴</div><div style="font-size:11px;margin-top:3px">点击 ＋ 开始记录</div></div>`;
+    return;
+  }
+  c.innerHTML=day.map((e,i)=>`
+    <div class="ec-wrap" id="wrap_${e.id}">
+      <div class="ec-del" onclick="swipeDel('${e.id}')">
+        <div class="ec-del-icon">🗑</div>
+        <div class="ec-del-lbl">删除</div>
+      </div>
+      <div class="ec" id="ec_${e.id}" style="animation-delay:${i*55}ms">
+        <div class="eci">${e.weather||'📅'}</div>
+        <div class="ecb">
+          <div class="ect">${e.title||'无标题'}</div>
+          <div class="ecm">${e.body?e.body.slice(0,30)+'…':'暂无内容'} ${e.mood||''}</div>
+        </div>
+        <div class="eca">›</div>
+      </div>
+    </div>`).join('');
+  // bind swipe after DOM ready
+  day.forEach(e=>initSwipe(e.id));
+}
+
+/* ── SWIPE TO DELETE ── */
+function initSwipe(id){
+  const ec=document.getElementById('ec_'+id);
+  const wrap=document.getElementById('wrap_'+id);
+  if(!ec||!wrap)return;
+
+  let x0=0,y0=0,dragging=false,didSwipe=false;
+
+  function start(x,y){
+    x0=x;y0=y;dragging=true;didSwipe=false;
+    // close all other swiped cards
+    document.querySelectorAll('.ec-wrap.swiped').forEach(w=>{
+      if(w.id!=='wrap_'+id) w.classList.remove('swiped');
+    });
+  }
+  function move(x,y){
+    if(!dragging)return;
+    const dx=x-x0, dy=y-y0;
+    // if mostly vertical, cancel
+    if(!didSwipe && Math.abs(dy)>Math.abs(dx))return;
+    if(Math.abs(dx)>6){
+      didSwipe=true;
+      if(dx<-30) wrap.classList.add('swiped');
+      else if(dx>20) wrap.classList.remove('swiped');
+    }
+  }
+  function end(){
+    if(!didSwipe){
+      // it was a tap
+      if(wrap.classList.contains('swiped')){
+        wrap.classList.remove('swiped');
+      } else {
+        openE(id);
+      }
+    }
+    dragging=false;
+  }
+
+  // Touch
+  ec.addEventListener('touchstart',ev=>{
+    const t=ev.touches[0];
+    start(t.clientX,t.clientY);
+  },{passive:true});
+  ec.addEventListener('touchmove',ev=>{
+    const t=ev.touches[0];
+    move(t.clientX,t.clientY);
+    if(didSwipe) ev.preventDefault();
+  },{passive:false});
+  ec.addEventListener('touchend',end,{passive:true});
+
+  // Mouse (PC)
+  ec.addEventListener('mousedown',ev=>{
+    start(ev.clientX,ev.clientY);
+    const onMove=ev2=>{move(ev2.clientX,ev2.clientY);};
+    const onUp=()=>{
+      end();
+      window.removeEventListener('mousemove',onMove);
+      window.removeEventListener('mouseup',onUp);
+    };
+    window.addEventListener('mousemove',onMove);
+    window.addEventListener('mouseup',onUp);
+  });
+}
+
+function swipeDel(id){
+  const wrap=document.getElementById('wrap_'+id);
+  if(wrap){
+    wrap.style.transition='opacity .18s, transform .18s';
+    wrap.style.opacity='0';
+    wrap.style.transform='translateX(40px)';
+    setTimeout(()=>{
+      E=E.filter(e=>e.id!==id);
+      store();renderStrip(sD);renderCal();
+      showToast('已删除 💧');
+    },200);
+  }
+}
+
+function newEntry(){
+  const id='e_'+Date.now();
+  E.unshift({id,date:sD,title:'',body:'',mood:'',weather:wxI,weatherText:wxT,location:wxL,tags:[],media:[],created:Date.now()});
+  store();openE(id);
+}
+async function openE(id){
+  cId=id;const e=E.find(x=>x.id===id);if(!e)return;
+  await loadMediaSrcs(e);
+  const d=new Date(e.date+'T12:00:00');
+  document.getElementById('edD').textContent=pad(d.getDate());
+  document.getElementById('edMY').textContent=`${ME[d.getMonth()]} ${d.getFullYear()}`;
+  document.getElementById('edWK').textContent=WD[d.getDay()];
+  document.getElementById('endt').textContent=`${d.getMonth()+1}月${d.getDate()}日`;
+  document.getElementById('wxI').textContent=e.weather||'⛅';
+  document.getElementById('wxT').textContent=e.weatherText||'晴朗';
+  document.getElementById('wxL').textContent=e.location||'未知';
+  document.getElementById('eT').value=e.title||'';
+  document.getElementById('eB').value=e.body||'';
+  document.querySelectorAll('.mdot').forEach(b=>b.classList.toggle('active',b.textContent.trim()===e.mood));
+  upC();renderTags(e.tags||[]);renderMed(e.media||[]);
+  // restore exif card if entry has live photo with exif
+  hideExifCard();
+  const liveWithExif=(e.media||[]).find(m=>m.type==='live'&&m.exif);
+  if(liveWithExif) showExifCard(liveWithExif.exif);
+  show('editor');
+}
+function autoSave(){clearTimeout(asT);asT=setTimeout(saveEntry,1500);}
+
+/* ── EDITOR FLOATING DATE PICKER ── */
+let edFcY,edFcM,edFcPending=null;
+
+function openEdFC(){
+  if(!cId)return;
+  const e=E.find(x=>x.id===cId);if(!e)return;
+  const d=new Date(e.date+'T12:00:00');
+  edFcY=d.getFullYear();edFcM=d.getMonth();
+  edFcPending=e.date;
+  renderEdFC();
+  document.getElementById('edFcOverlay').classList.add('open');
+}
+function closeEdFC(){
+  document.getElementById('edFcOverlay').classList.remove('open');
+  edFcPending=null;
+}
+function edFcP(){edFcM--;if(edFcM<0){edFcM=11;edFcY--;}renderEdFC();}
+function edFcN(){edFcM++;if(edFcM>11){edFcM=0;edFcY++;}renderEdFC();}
+
+function renderEdFC(){
+  const n=new Date();
+  document.getElementById('edFcMo').textContent=`${edFcY}年 ${MC[edFcM]}`;
+  const days=new Date(edFcY,edFcM+1,0).getDate();
+  const first=new Date(edFcY,edFcM,1).getDay();
+  const prev=new Date(edFcY,edFcM,0).getDate();
+  let h='';
+  for(let i=0;i<first;i++)h+=`<div class="ed-fc-day other">${prev-first+i+1}</div>`;
+  for(let d=1;d<=days;d++){
+    const dstr=`${edFcY}-${pad(edFcM+1)}-${pad(d)}`;
+    const isT=n.getFullYear()===edFcY&&n.getMonth()===edFcM&&n.getDate()===d;
+    const isCur=dstr===edFcPending;
+    const dow=new Date(edFcY,edFcM,d).getDay();
+    const cls=['ed-fc-day',dow===0?'sun':'',dow===6?'sat':'',isT?'today':'',isCur?'cur':''].filter(Boolean).join(' ');
+    h+=`<div class="${cls}" onclick="edFcPick('${dstr}')">${d}</div>`;
+  }
+  const rem=(first+days)%7===0?0:7-(first+days)%7;
+  for(let i=1;i<=rem;i++)h+=`<div class="ed-fc-day other">${i}</div>`;
+  document.getElementById('edFcGrid').innerHTML=h;
+}
+
+function edFcPick(dstr){
+  edFcPending=dstr;
+  // re-render to highlight selected
+  renderEdFC();
+}
+
+function confirmEdDate(){
+  if(!cId||!edFcPending)return;
+  const e=E.find(x=>x.id===cId);if(!e)return;
+  e.date=edFcPending;
+  store();
+  const d=new Date(e.date+'T12:00:00');
+  document.getElementById('edD').textContent=pad(d.getDate());
+  document.getElementById('edMY').textContent=`${ME[d.getMonth()]} ${d.getFullYear()}`;
+  document.getElementById('edWK').textContent=WD[d.getDay()];
+  document.getElementById('endt').textContent=`${d.getMonth()+1}月${d.getDate()}日`;
+  sD=edFcPending;
+  closeEdFC();
+  showToast(`日期已修改为 ${+edFcPending.slice(5)}月${+edFcPending.slice(8)}日 💧`);
+}
+function saveEntry(){
+  if(!cId)return;const e=E.find(x=>x.id===cId);if(!e)return;
+  e.title=document.getElementById('eT').value;e.body=document.getElementById('eB').value;store();
+  const b=document.getElementById('svbtn');b.textContent='✓';b.classList.add('saved');
+  setTimeout(()=>{b.textContent='保存';b.classList.remove('saved');},1400);
+  showToast('已保存 💧');
+}
+/* ══════════════════════════════
+   STORAGE — IndexedDB for media, localStorage for text
+══════════════════════════════ */
+let db=null;
+function openDB(){
+  return new Promise((res,rej)=>{
+    const req=indexedDB.open('sg_media',1);
+    req.onupgradeneeded=e=>{e.target.result.createObjectStore('media');};
+    req.onsuccess=e=>{db=e.target.result;res(db);};
+    req.onerror=()=>rej();
+  });
+}
+function dbPut(key,val){
+  return new Promise((res,rej)=>{
+    const tx=db.transaction('media','readwrite');
+    tx.objectStore('media').put(val,key);
+    tx.oncomplete=()=>res();tx.onerror=()=>rej();
+  });
+}
+function dbGet(key){
+  return new Promise((res)=>{
+    const tx=db.transaction('media','readonly');
+    const req=tx.objectStore('media').get(key);
+    req.onsuccess=()=>res(req.result||null);
+    req.onerror=()=>res(null);
+  });
+}
+function dbDel(key){
+  return new Promise((res)=>{
+    const tx=db.transaction('media','readwrite');
+    tx.objectStore('media').delete(key);
+    tx.oncomplete=()=>res();tx.onerror=()=>res();
+  });
+}
+
+// strip src from entries before saving to localStorage
+function store(){
+  const slim=E.map(e=>({
+    ...e,
+    media:(e.media||[]).map(m=>({type:m.type,name:m.name,key:m.key}))
+  }));
+  try{localStorage.setItem('sg4',JSON.stringify(slim));}
+  catch(err){showToast('存储空间不足，请删除部分日记');}
+}
+
+// generate unique media key
+function mkKey(entryId,idx){return `${entryId}_${idx}_${Date.now()}`;}
+
+async function addM(item){
+  if(!cId)return;
+  const e=E.find(x=>x.id===cId);if(!e)return;
+  if(!e.media)e.media=[];
+  const key=mkKey(cId,e.media.length);
+  item.key=key;
+  // store src in IndexedDB, keep src in memory for display
+  if(item.src && db){
+    await dbPut(key,item.src);
+  }
+  e.media.push(item);
+  store();
+  renderMed(e.media);
+}
+
+async function rmM(i){
+  const e=E.find(x=>x.id===cId);if(!e)return;
+  const item=e.media[i];
+  if(item&&item.key&&db) await dbDel(item.key);
+  e.media.splice(i,1);
+  store();renderMed(e.media);
+}
+
+// load srcs from IndexedDB back into memory entry
+async function loadMediaSrcs(entry){
+  if(!db||!entry.media)return;
+  for(const m of entry.media){
+    if(!m.src&&m.key){
+      m.src=await dbGet(m.key)||'';
+    }
+  }
+}
+
+function renderMed(ml){
+  const t=document.getElementById('mtray');t.innerHTML='';
+  ml.forEach((m,i)=>{const d=document.createElement('div');d.className='mth';
+    if(m.type==='image')d.innerHTML=`<img src="${m.src||''}"><button class="mdel" onclick="rmM(${i})">✕</button>`;
+    else if(m.type==='video')d.innerHTML=`🎬<button class="mdel" onclick="rmM(${i})">✕</button>`;
+    else if(m.type==='audio')d.innerHTML=`🎙<button class="mdel" onclick="rmM(${i})">✕</button>`;
+    else if(m.type==='live')d.innerHTML=`<img src="${m.src||''}"><span class="lbadge">LIVE</span><button class="mdel" onclick="rmM(${i})">✕</button>`;
+    t.appendChild(d);});
+  const a=document.createElement('button');a.className='addm';a.innerHTML=`<span class="addmp">＋</span>添加`;a.onclick=()=>trig('image');t.appendChild(a);
+}
+function showDel(){document.getElementById('ds').classList.add('open');}
+function closeSheet(){document.getElementById('ds').classList.remove('open');}
+async function confDel(){
+  const e=E.find(x=>x.id===cId);
+  if(e&&db){for(const m of (e.media||[])){if(m.key)await dbDel(m.key);}}
+  E=E.filter(e=>e.id!==cId);cId=null;store();closeSheet();goBack();showToast('日记已删除');
+}
+function setMood(b,em){document.querySelectorAll('.mdot').forEach(x=>x.classList.remove('active'));b.classList.add('active');if(!cId)return;const e=E.find(x=>x.id===cId);if(e){e.mood=em;store();}}
+/* ── TAGS ── */
+function renderTags(tags){
+  const w=document.getElementById('tw');
+  w.innerHTML='';
+  (tags||[]).forEach(t=>{
+    const chip=document.createElement('div');
+    chip.className='tchip';
+    chip.innerHTML=`#${t}<button onclick="rmTag('${t}')">×</button>`;
+    w.appendChild(chip);
+  });
+  // always show hint to add more
+  const hint=document.createElement('span');
+  hint.className='tag-add-hint';
+  hint.textContent='+ 标签';
+  hint.onclick=e=>{e.stopPropagation();addTagInput();};
+  w.appendChild(hint);
+}
+
+function tsecClick(e){
+  // only open input if clicking the section itself (not a chip or button)
+  if(e.target.closest('.tchip')||e.target.closest('.tag-pill-wrap'))return;
+  addTagInput();
+}
+
+function addTagInput(){
+  // don't add another input if one already exists
+  if(document.querySelector('.tag-pill-wrap'))return;
+  const w=document.getElementById('tw');
+  // remove hint temporarily
+  const hint=w.querySelector('.tag-add-hint');
+  if(hint)hint.remove();
+
+  const wrap=document.createElement('div');
+  wrap.className='tag-pill-wrap';
+  wrap.innerHTML=`<span class="hash">#</span><input class="tag-pill-input" placeholder="输入标签" maxlength="16">`;
+  w.appendChild(wrap);
+
+  const inp=wrap.querySelector('.tag-pill-input');
+  inp.focus();
+
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='Enter'||e.key===','||e.key==='，'){
+      e.preventDefault();
+      commitTag(inp.value.trim().replace(/[#,，]/g,''));
+    } else if(e.key==='Backspace'&&inp.value===''){
+      // remove empty input pill on backspace
+      wrap.remove();
+      renderTags((E.find(x=>x.id===cId)||{}).tags||[]);
+    }
+  });
+  inp.addEventListener('blur',()=>{
+    const val=inp.value.trim().replace(/[#,，]/g,'');
+    if(val) commitTag(val);
+    else {wrap.remove();renderTags((E.find(x=>x.id===cId)||{}).tags||[]);}
+  });
+}
+
+function commitTag(val){
+  if(!val||!cId)return;
+  const e=E.find(x=>x.id===cId);if(!e)return;
+  if(!e.tags)e.tags=[];
+  if(!e.tags.includes(val))e.tags.push(val);
+  store();
+  renderTags(e.tags);
+}
+
+function rmTag(t){
+  const e=E.find(x=>x.id===cId);if(!e)return;
+  e.tags=e.tags.filter(x=>x!==t);
+  store();renderTags(e.tags);
+}
+function trig(t){document.getElementById(t+'Input').click();}
+function trigL(){document.getElementById('liveInput').click();}
+function hImg(inp){Array.from(inp.files).forEach(f=>{const r=new FileReader();r.onload=ev=>addM({type:'image',src:ev.target.result,name:f.name});r.readAsDataURL(f);});inp.value='';}
+function hVid(inp){if(!inp.files[0])return;const r=new FileReader();r.onload=ev=>addM({type:'video',src:ev.target.result,name:inp.files[0].name});r.readAsDataURL(inp.files[0]);inp.value='';}
+function hAud(inp){if(!inp.files[0])return;const r=new FileReader();r.onload=ev=>addM({type:'audio',src:ev.target.result,name:inp.files[0].name});r.readAsDataURL(inp.files[0]);inp.value='';}
+function hLiv(inp){
+  if(!inp.files[0])return;
+  const file=inp.files[0];
+  const r=new FileReader();
+  r.onload=ev=>{
+    const src=ev.target.result;
+    // parse EXIF from the file
+    parseExif(file).then(exif=>{
+      addM({type:'live',src,name:file.name,exif});
+      if(exif) showExifCard(exif);
+    });
+  };
+  r.readAsDataURL(file);
+  inp.value='';
+}
+
+function parseExif(file){
+  return new Promise(resolve=>{
+    if(typeof EXIF==='undefined'){resolve(null);return;}
+    const reader=new FileReader();
+    reader.onload=function(e){
+      // EXIF.readFromBinaryFile needs array buffer
+      try{
+        const view=new DataView(e.target.result);
+        EXIF.getData(file,function(){
+          const all=EXIF.getAllTags(this);
+          const exif={};
+          // shooting time
+          const dt=all.DateTimeOriginal||all.DateTime||all.DateTimeDigitized;
+          if(dt){
+            // format: "2024:03:15 14:23:01"
+            const parts=dt.split(' ');
+            if(parts.length===2){
+              const d=parts[0].replace(/:/g,'-');
+              exif.time=`${d} ${parts[1]}`;
+              exif.dateOnly=d;
+            }
+          }
+          // GPS
+          const latArr=all.GPSLatitude;
+          const lonArr=all.GPSLongitude;
+          const latRef=all.GPSLatitudeRef||'N';
+          const lonRef=all.GPSLongitudeRef||'E';
+          if(latArr&&lonArr){
+            const lat=dmsToDecimal(latArr,latRef);
+            const lon=dmsToDecimal(lonArr,lonRef);
+            exif.lat=lat.toFixed(5);
+            exif.lon=lon.toFixed(5);
+            exif.gpsRaw=`${lat.toFixed(4)}°${latRef}, ${lon.toFixed(4)}°${lonRef}`;
+            // reverse geocode with open-meteo nominatim
+            fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=zh`)
+              .then(r=>r.json())
+              .then(d=>{
+                const addr=d.address||{};
+                const loc=[
+                  addr.village||addr.town||addr.city_district||addr.suburb,
+                  addr.city||addr.county,
+                  addr.state
+                ].filter(Boolean).join(', ');
+                exif.location=loc||exif.gpsRaw;
+                // update card if still showing
+                const locEl=document.getElementById('exifLoc');
+                if(locEl) locEl.textContent=exif.location;
+                // update entry
+                if(cId){
+                  const en=E.find(x=>x.id===cId);
+                  const lm=en&&(en.media||[]).find(m=>m.type==='live'&&m.exif);
+                  if(lm) lm.exif.location=exif.location;
+                  store();
+                }
+              }).catch(()=>{});
+          }
+          // device model
+          const make=all.Make||'';
+          const model=all.Model||'';
+          if(model) exif.device=`${make} ${model}`.trim();
+          resolve(Object.keys(exif).length?exif:null);
+        });
+      } catch(err){resolve(null);}
+    };
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function dmsToDecimal(dms,ref){
+  const d=dms[0].numerator/dms[0].denominator;
+  const m=dms[1].numerator/dms[1].denominator;
+  const s=dms[2].numerator/dms[2].denominator;
+  let dec=d+m/60+s/3600;
+  if(ref==='S'||ref==='W') dec=-dec;
+  return dec;
+}
+
+function showExifCard(exif){
+  if(!exif)return;
+  const card=document.getElementById('exifCard');
+  const timeRow=document.getElementById('exifTimeRow');
+  const locRow=document.getElementById('exifLocRow');
+  const devRow=document.getElementById('exifDevRow');
+  if(exif.time){
+    document.getElementById('exifTime').textContent=exif.time;
+    timeRow.style.display='flex';
+  }
+  if(exif.location||exif.gpsRaw){
+    document.getElementById('exifLoc').textContent=exif.location||exif.gpsRaw;
+    locRow.style.display='flex';
+  }
+  if(exif.device){
+    document.getElementById('exifDev').textContent=exif.device;
+    devRow.style.display='flex';
+  }
+  if(exif.time||exif.location||exif.gpsRaw||exif.device){
+    card.classList.add('show');
+  }
+}
+
+function hideExifCard(){
+  const card=document.getElementById('exifCard');
+  card.classList.remove('show');
+  ['exifTimeRow','exifLocRow','exifDevRow'].forEach(id=>{
+    document.getElementById(id).style.display='none';
+  });
+}
+
+async function swipeDel(id){
+  const wrap=document.getElementById('wrap_'+id);
+  if(wrap){
+    wrap.style.transition='opacity .18s, transform .18s';
+    wrap.style.opacity='0';wrap.style.transform='translateX(40px)';
+    setTimeout(async()=>{
+      const e=E.find(x=>x.id===id);
+      if(e&&db){for(const m of (e.media||[])){if(m.key)await dbDel(m.key);}}
+      E=E.filter(e=>e.id!==id);
+      store();renderStrip(sD);renderCal();
+      showToast('已删除 💧');
+    },200);
+  }
+}
+function upC(){document.getElementById('cpill').textContent=document.getElementById('eB').value.length+' 字';}
+function calcStreak(){const d=[...new Set(E.map(e=>e.date))].sort().reverse();if(!d.length)return 0;let s=0,c=new Date();for(const x of d){const dd=new Date(x+'T12:00:00');if(Math.round((c-dd)/864e5)<=1){s++;c=dd;}else break;}return s;}
+function showStats(){showToast(`共${E.length}篇 · ${E.reduce((s,e)=>s+(e.body||'').length,0)}字 · 连续${calcStreak()}天`);}
+function checkOTD(){const n=new Date();const mm=`${pad(n.getMonth()+1)}-${pad(n.getDate())}`;const p=E.filter(e=>e.date.slice(5)===mm&&e.date.slice(0,4)!==String(n.getFullYear()));if(p.length){const y=n.getFullYear()-+p[0].date.slice(0,4);setTimeout(()=>showToast(`💧 ${y}年前的今天也有记录`),800);}}
+function showToast(msg){const o=document.querySelector('.toast');if(o)o.remove();const t=document.createElement('div');t.className='toast';t.textContent=msg;document.getElementById('phone').appendChild(t);setTimeout(()=>t.remove(),2200);}
+function fetchWx(){if(!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(p=>{const{latitude:la,longitude:lo}=p.coords;wxL=`${la.toFixed(1)}°N`;document.getElementById('wxL').textContent=wxL;fetch(`https://api.open-meteo.com/v1/forecast?latitude=${la}&longitude=${lo}&current_weather=true`).then(r=>r.json()).then(data=>{const{icon,text}=wxi(data.current_weather?.weathercode);const t=Math.round(data.current_weather?.temperature);wxI=icon;wxT=`${text} ${t}°`;document.getElementById('wxI').textContent=icon;document.getElementById('wxT').textContent=wxT;if(cId){const e=E.find(x=>x.id===cId);if(e){e.weather=icon;e.weatherText=wxT;store();}}}).catch(()=>{});},()=>{wxL='位置关闭';});}
+function wxi(c){if(c===0)return{icon:'☀️',text:'晴'};if(c<=2)return{icon:'🌤',text:'多云'};if(c===3)return{icon:'☁️',text:'阴'};if(c<=48)return{icon:'🌫',text:'雾'};if(c<=67)return{icon:'🌧',text:'雨'};if(c<=77)return{icon:'❄️',text:'雪'};if(c<=82)return{icon:'🌦',text:'阵雨'};if(c<=95)return{icon:'⛈',text:'雷雨'};return{icon:'⛅',text:'多云'};}
+function toggleTheme(){dark=!dark;localStorage.setItem('sg_d',dark?'1':'0');document.body.classList.toggle('dark',dark);document.getElementById('thBtn').textContent=dark?'☀️':'🌙';}
+</script>
+</body>
+</html>
